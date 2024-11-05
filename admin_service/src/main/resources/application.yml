@@ -1,0 +1,132 @@
+server:
+  port: 8060
+
+
+oauth:
+  path: http://192.168.250.209:8070
+  admin:
+    username: softadmin
+    password: "4rfv#EDC@"
+    client-id: security-admin-console
+  base-url: '${oauth.path}/auth'
+  realm: FCM_VoIP
+  authorization-grant-type: client_credentials
+  client:
+    id: voip
+    secret: 983f082e-9286-499b-8a46-7daba449ac0c
+
+#oauth:
+#  path: http://192.168.250.209:8070
+#  admin:
+#    client-id: security-admin-console
+#  base-url: '${oauth.path}/auth'
+#  realm: FCM_VoIP
+#  authorization-grant-type: client_credentials
+#  client:
+#    id: voip
+#    secret: 983f082e-9286-499b-8a46-7daba449ac0c
+
+spring:
+  application:
+    name: ADMIN_SERVICE
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: ${oauth.base-url}/realms/${oauth.realm}
+
+      client:
+        registration:
+          keycloak:
+            provider: keycloak
+            authorization-grant-type: client_credentials
+            client-id: ${oauth.client.id}
+            client-secret: ${oauth.client.secret}
+
+        provider:
+          keycloak:
+            issuer-uri: ${spring.security.oauth2.resource-server.jwt.issuer-uri}
+            jwk-set-uri: ${spring.security.oauth2.resource-server.jwt.issuer-uri}/protocol/openid-connect/certs
+            token-uri: ${spring.security.oauth2.resource-server.jwt.issuer-uri}/protocol/openid-connect/token
+
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate.format_sql: true
+      hibernate.dialect: org.hibernate.dialect.PostgreSQL10Dialect
+
+  datasource:
+    url: jdbc:postgresql://192.168.250.209:5432/voip_db
+    username: julius
+    password: julius123
+    hikari:
+      schema: voip_admin
+
+#  flyway:
+#    enabled: true
+#    url: '${spring.datasource.url}'
+#    user: '${spring.datasource.username}'
+#    password: '${spring.datasource.password}'
+#    schemas: '${spring.datasource.hikari.schema}'
+#    baseline-on-migrate: true
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    sql: trace
+
+#  cache:
+#    type: redis
+#    cache-names:
+#      recommendations:
+#        expire-after-write: 600s
+
+springdoc:
+  api-docs:
+    path: /api/v1/admin_service/api-docs
+  swagger-ui:
+    path: /api/v1/admin_service/swagger-ui.html
+    oauth:
+      client-id: ${oauth.client.id}
+      client-secret: ${oauth.client.secret}
+      authorization-grant-type: "client_credentials"
+      realm: ${oauth.realm}
+      use-pkce-with-authorization-code-grant: true
+      token-url: ${spring.security.oauth2.client.provider.keycloak.token-uri}
+
+  show-actuator: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    env:
+      show-values: always
+
+voip:
+  keycloak:
+    auth-server-url: http://192.168.250.209:8070
+    realm: FCM_VoIP
+    client-id: voip
+    client-secret: 983f082e-9286-499b-8a46-7daba449ac0c
+    token-endpoint: http://192.168.250.209:8070/auth/realms/FCM_VoIP/protocol/openid-connect/token
+
+
+#eureka:
+#  client:
+#    register-with-eureka: true
+#    fetch-registry: true
+#    service-url:
+#      defaultZone: http://10.195.10.86:8761/eureka/
+#  instance:
+#    hostname: 10.195.10.86
